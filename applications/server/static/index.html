@@ -1,0 +1,90 @@
+<html>
+<head>
+  <link href="https://unpkg.com/video.js/dist/video-js.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/video.js/dist/video.min.js"></script>
+  <script src="https://github.com/videojs/mux.js/releases/latest/download/mux.js"></script>
+</head>
+<body>
+<!-- Or if you want a more recent alpha version -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/hls.js@alpha"></script> -->
+<!-- <video id="video" controls autoplay></video> -->
+<video
+    id="my-player"
+    class="video-js"
+    controls
+    preload="auto"
+    data-setup='{}'>
+  <!-- <source src="http://192.168.1.169:5004/auto/v3.1"></source> -->
+  <p class="vjs-no-js">
+    To view this video please enable JavaScript, and consider upgrading to a
+    web browser that
+    <a href="https://videojs.com/html5-video-support/" target="_blank">
+      supports HTML5 video
+    </a>
+  </p>
+</video>
+<script>
+  // Create array of TS files to play
+  segments = [
+    "http://192.168.1.169:5004/auto/v3.1",
+  ];
+  // Replace this value with your files codec info
+  mime = 'video/mpeg;codecs="avc1.640040"';
+
+  let mediaSource = new MediaSource();
+  let transmuxer = new muxjs.mp4.Transmuxer();
+
+  video = document.querySelector('video');
+  video.src = URL.createObjectURL(mediaSource);
+  mediaSource.addEventListener("sourceopen", appendFirstSegment);
+
+  function appendFirstSegment(){
+    if (segments.length == 0){
+      return;
+    }
+
+    URL.revokeObjectURL(video.src);
+    sourceBuffer = mediaSource.addSourceBuffer(mime);
+    sourceBuffer.addEventListener('updateend', appendNextSegment);
+
+    transmuxer.on('data', (segment) => {
+      let data = new Uint8Array(segment.initSegment.byteLength + segment.data.byteLength);
+      data.set(segment.initSegment, 0);
+      data.set(segment.data, segment.initSegment.byteLength);
+      console.log(muxjs.mp4.tools.inspect(data));
+      sourceBuffer.appendBuffer(data);
+    })
+
+    fetch(segments.shift()).then((response)=>{
+      return response.arrayBuffer();
+    }).then((response)=>{
+      transmuxer.push(new Uint8Array(response));
+      transmuxer.flush();
+    })
+  }
+
+  function appendNextSegment(){
+    // reset the 'data' event listener to just append (moof/mdat) boxes to the Source Buffer
+    transmuxer.off('data');
+    transmuxer.on('data', (segment) =>{
+      sourceBuffer.appendBuffer(new Uint8Array(segment.data));
+    })
+
+    if (segments.length == 0){
+      // notify MSE that we have no more segments to append.
+      mediaSource.endOfStream();
+    }
+
+    segments.forEach((segment) => {
+      // fetch the next segment from the segments array and pass it into the transmuxer.push method
+      fetch(segments.shift()).then((response)=>{
+        return response.arrayBuffer();
+      }).then((response)=>{
+        transmuxer.push(new Uint8Array(response));
+        transmuxer.flush();
+      })
+    })
+  }
+</script>
+</body>
+</html>

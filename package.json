@@ -1,0 +1,24 @@
+{
+  "name": "hdhr-server",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "applications/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "to-server": "yarn workspace hdhr-server",
+    "to-client": "yarn workspace hdhr-client",
+    "start:server:dev": "yarn to-server start:dev",
+    "start:client:dev": "yarn to-client start:dev"
+  },
+  "dependencies": {
+    "@types/node": "^17.0.4",
+    "hls.js": "^1.1.2",
+    "ts-node": "^10.4.0",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.5.4"
+  }
+}

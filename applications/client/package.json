@@ -1,0 +1,41 @@
+{
+  "name": "hdhr-client",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start:dev": "webpack serve --open --mode development",
+    "build": "webpack --mode production"
+  },
+  "dependencies": {
+    "mpegts.js": "^1.6.10",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "video.js": "^7.17.0",
+    "videojs-mpegtsjs": "^1.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.16.5",
+    "@babel/plugin-transform-runtime": "^7.16.5",
+    "@babel/preset-env": "^7.16.5",
+    "@babel/preset-react": "^7.16.5",
+    "@babel/preset-typescript": "^7.16.5",
+    "@babel/runtime": "^7.16.5",
+    "@types/react-dom": "17.0.11",
+    "@types/webpack": "^5.28.0",
+    "@types/webpack-dev-server": "^4.5.0",
+    "@typescript-eslint/eslint-plugin": "^5.8.0",
+    "@typescript-eslint/parser": "^5.8.0",
+    "babel-loader": "^8.2.3",
+    "css-loader": "^6.5.1",
+    "eslint-plugin-react": "^7.28.0",
+    "eslint-plugin-react-hooks": "^4.3.0",
+    "file-loader": "^6.2.0",
+    "source-map-loader": "^3.0.0",
+    "style-loader": "^3.3.1",
+    "url-loader": "^4.1.1",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.7.1"
+  }
+}
