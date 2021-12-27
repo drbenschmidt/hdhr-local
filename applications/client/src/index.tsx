@@ -6,14 +6,15 @@ const App = () => {
   const playerRef = useRef(null);
 
   const videoJsOptions = { // lookup the options in the docs for more options
-    autoplay: false,
+    autoplay: true,
     controls: true,
     responsive: true,
     fluid: true,
     sources: [{
       //src: 'http://localhost/stream/tuner0/v3.1',
-      src: 'http://localhost/transcode',
-      type: 'video/webm;codecs=vp8,opus'
+      //src: 'http://192.168.1.116/transcode',
+      //type: 'video/webm;codecs=vp8,opus',
+      src: 'http://192.168.1.116/hls/stream.m3u8'
     }]
   };
 
