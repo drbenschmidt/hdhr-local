@@ -14,7 +14,7 @@ const App = () => {
       //src: 'http://localhost/stream/tuner0/v3.1',
       //src: 'http://192.168.1.116/transcode',
       //type: 'video/webm;codecs=vp8,opus',
-      src: 'http://192.168.1.116/hls/stream.m3u8'
+      src: 'http://192.168.1.116/hls/main.m3u8'
     }]
   };
 

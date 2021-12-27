@@ -13,7 +13,9 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "video.js": "^7.17.0",
-    "videojs-mpegtsjs": "^1.0.0"
+    "videojs-mpegtsjs": "^1.0.0",
+    "videojs-hls-quality-selector": "1.1.4",
+    "videojs-contrib-quality-levels": "2.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.16.5",

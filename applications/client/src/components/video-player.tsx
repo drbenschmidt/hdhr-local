@@ -1,5 +1,7 @@
 import React, { memo, useEffect, useRef } from "react";
 import videojs from 'video.js'
+import 'videojs-hls-quality-selector';
+import 'videojs-contrib-quality-levels';
 import 'videojs-mpegtsjs'
 import "video.js/dist/video-js.css";
 //@ts-ignore
@@ -60,11 +62,18 @@ export const VideoJS = (props) => {
         console.log("player is ready");
         onReady && onReady(player);
       });
+
+      playerRef.current.hlsQualitySelector({
+        displayCurrentQuality: true,
+      });
+
     } else {
       // you can update player here [update player through props]
       // const player = playerRef.current;
       // player.autoplay(options.autoplay);
       // player.src(options.sources);
+
+      
     }
   }, [options, videoRef]);
 
