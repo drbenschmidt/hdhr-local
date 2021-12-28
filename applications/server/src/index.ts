@@ -3,6 +3,7 @@ import type { Response, Request } from 'express';
 import proxy from 'express-http-proxy';
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import morgan from 'morgan';
+import { getEncoders } from '@drbenschmidt/ffmpeg-utils';
 
 const app = express();
 
@@ -128,11 +129,17 @@ app.get('/health', (req, res, next) => {
   });
 });
 
-app.use('/hls', express.static('../../tmp'))
+app.use('/hls', express.static('../../tmp'));
 
-// app.use('/stream', proxy('192.168.1.169:5004'));
+app.get('/ffmpeg/encoders', (req, res) => {
+  const encoders = getEncoders();
+
+  res.json(encoders);
+});
+
+// TODO: Make this configurable for dev environments, or just serving
+// a static build directory at root for prod.
 app.use('/', proxy('localhost:9000'));
-// app.use(express.static('./static'))
 
 app.listen(80, () => {
   console.log(`Listening on port 80`);

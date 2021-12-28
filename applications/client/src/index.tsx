@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useCallback, useRef } from "react";
 import ReactDOM from "react-dom";
 import VideoPlayer from './components/video-player';
 
@@ -18,7 +18,7 @@ const App = () => {
     }]
   };
 
-  const handlePlayerReady = (player) => {
+  const handlePlayerReady = useCallback((player) => {
     playerRef.current = player;
 
     // you can handle player events here
@@ -29,7 +29,7 @@ const App = () => {
     player.on('dispose', () => {
       console.log('player will dispose');
     });
-  };
+  }, [playerRef.current]);
 
   return (
     <>
