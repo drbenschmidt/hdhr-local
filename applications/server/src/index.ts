@@ -2,12 +2,14 @@ import express from 'express';
 import proxy from 'express-http-proxy';
 import morgan from 'morgan';
 import { getEncoders } from '@drbenschmidt/ffmpeg-utils';
-import { Transcoder } from './transcoder';
+import { getStatus } from '@drbenschmidt/hdhr-utils';
+import { TranscodeManager } from './transcoder/manager';
 import { TunerName } from './transcoder/metadata';
 
 const app = express();
-
-const service = new Transcoder();
+const service = new TranscodeManager();
+const startTime = new Date();
+const hdhrAddress = '192.168.1.169';
 
 const guardValueIn = <T>(input: T, values: T[]): void => {
   if (!values.includes(input)) {
@@ -55,9 +57,14 @@ app.get('hls/:hdhrAddress/:tuner/:channel', async (req, res) => {
   }
 });
 
-app.get('/health', (req, res, next) => {
+app.get('/health', async (req, res, next) => {
+  const hdhrStatus = await getStatus(hdhrAddress);
+
   res.json({
     alive: true,
+    startTime,
+    uptime: (new Date().getTime() - startTime.getTime()),
+    hdhrStatus,
   });
 });
 

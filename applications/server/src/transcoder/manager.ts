@@ -2,7 +2,7 @@ import { TranscoderProcess } from "./process";
 import type { Response, Request } from 'express';
 import type { TranscoderMetadata } from "./metadata";
 
-export class Transcoder {
+export class TranscodeManager {
   private processes: TranscoderProcess[] = [];
 
   private async getTranscoder(meta: TranscoderMetadata) {

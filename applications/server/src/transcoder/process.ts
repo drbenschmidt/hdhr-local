@@ -5,7 +5,7 @@ import { TranscoderMetadata } from './metadata';
 import { getHlsArgs, getWebmArgs } from '@drbenschmidt/ffmpeg-utils';
 
 const buildInput = (meta: Pick<TranscoderMetadata, 'hdhrAddress' | 'tuner' | 'channel'>): string => {
-  return `${meta.hdhrAddress}:5004/${meta.tuner}/${meta.channel}`;
+  return `http://${meta.hdhrAddress}:5004/${meta.tuner}/${meta.channel}`;
 };
 
 const buildArgs = (url: string, meta: Pick<TranscoderMetadata, 'outputType' | 'tuner'>): string[] => {
