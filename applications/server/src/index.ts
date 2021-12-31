@@ -2,7 +2,7 @@ import express from 'express';
 import proxy from 'express-http-proxy';
 import morgan from 'morgan';
 import { getEncoders } from '@drbenschmidt/ffmpeg-utils';
-import { getStatus } from '@drbenschmidt/hdhr-utils';
+import { getStatus, getLineup } from '@drbenschmidt/hdhr-utils';
 import { TranscodeManager } from './transcoder/manager';
 import { TunerName } from './transcoder/metadata';
 
@@ -66,6 +66,17 @@ app.get('/health', async (req, res, next) => {
     uptime: (new Date().getTime() - startTime.getTime()),
     hdhrStatus,
   });
+});
+
+app.get('/guide', async (req, res) => {
+  const lineup = await getLineup(hdhrAddress);
+
+  res.json(lineup.map((v) => {
+    return {
+      name: v.GuideName,
+      number: v.GuideNumber
+    }
+  }));
 });
 
 app.use('/hls', express.static('../../tmp'));
