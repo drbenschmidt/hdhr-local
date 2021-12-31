@@ -27,7 +27,7 @@ export class TranscoderProcess {
   readonly meta: TranscoderMetadata;
   readonly url: string;
   private handle?: ChildProcessWithoutNullStreams;
-  private streamerCount: number = 0;
+  private streamerCount = 0;
   private args: string[] = [];
   ffmpegReady?: Promise<void>;
 

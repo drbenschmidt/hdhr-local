@@ -1,4 +1,4 @@
-import { memo } from "react";
+import React, { memo, useCallback, useEffect, useState, useRef } from "react";
 
 // status.json
 // {
@@ -23,10 +23,45 @@ import { memo } from "react";
 //   URL: "http://192.168.1.169:5004/auto/v3.1"
 // }
 
+type GuideResponse = Array<{
+  name: string;
+  number: string;
+}>;
+
 const HdHrOptions = () => {
+  const [guide, setGuide] = useState<GuideResponse>();
+  const channelRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    const doFetch = async () => {
+      const result = await fetch('http://192.168.1.116/guide');
+      const guide = await result.json();
+      setGuide(guide);
+    };
+
+    doFetch();
+  }, []);
+
+  const onChannelSelect = useCallback((...args) => {
+    console.log(args);
+  }, []);
+
+  if (!guide) {
+    return null;
+  }
+
+  const options = guide.map((v) => {
+    return <option key={v.number} id={v.number} value={v.number}>{v.number} - {v.name}</option>
+  })
+
   return (
     <div>
-      Tuner: <select></select>
+      <div>
+        Tuner: <select></select>
+      </div>
+      <div>
+        Channel: <select ref={channelRef} onChange={onChannelSelect}>{options}</select>
+      </div>
     </div>
   )
 };

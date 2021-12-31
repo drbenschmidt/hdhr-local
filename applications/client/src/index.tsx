@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from "react";
 import ReactDOM from "react-dom";
 import VideoPlayer from './components/video-player';
+import HdhrOptions from "./components/hdhr-options";
 
 const App = () => {
   const playerRef = useRef(null);
@@ -29,12 +30,12 @@ const App = () => {
     player.on('dispose', () => {
       console.log('player will dispose');
     });
-  }, [playerRef.current]);
+  }, [playerRef]);
 
   return (
     <>
-      <h1>My React and TypeScript App!</h1>
-      <VideoPlayer options={videoJsOptions} onReady={handlePlayerReady} />
+      <HdhrOptions />
+      { false && <VideoPlayer options={videoJsOptions} onReady={handlePlayerReady} /> }
     </>
   );
 };
