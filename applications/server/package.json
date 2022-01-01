@@ -14,10 +14,12 @@
     "http-proxy-middleware": "2.0.1",
     "express-http-proxy": "1.6.3",
     "morgan": "1.10.0",
+    "fs-extra": "10.0.0",
     "@drbenschmidt/ffmpeg-utils": "*",
     "@drbenschmidt/hdhr-utils": "*"
   },
   "devDependencies": {
+    "@types/fs-extra": "9.0.13",
     "@types/express": "4.17.13",
     "@types/express-http-proxy": "1.6.3",
     "@types/morgan": "1.9.3"

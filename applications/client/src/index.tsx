@@ -1,9 +1,10 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import VideoPlayer from './components/video-player';
+import VideoPlayer, { StreamingOptions } from './components/video-player';
 import HdhrOptions from "./components/hdhr-options";
 
 const App = () => {
+  const [streamingOptions, setStreamingOptions] = useState<StreamingOptions>();
   const playerRef = useRef(null);
 
   const videoJsOptions = { // lookup the options in the docs for more options
@@ -15,7 +16,7 @@ const App = () => {
       //src: 'http://localhost/stream/tuner0/v3.1',
       //src: 'http://192.168.1.116/transcode',
       //type: 'video/webm;codecs=vp8,opus',
-      src: 'http://192.168.1.116/hls/main.m3u8'
+      //src: 'http://192.168.1.116/hls/main.m3u8'
     }]
   };
 
@@ -32,10 +33,22 @@ const App = () => {
     });
   }, [playerRef]);
 
+  const onOptionsChanged = useCallback((options) => {
+    setStreamingOptions(options);
+  }, []);
+
+  const player = () => {
+    if (!streamingOptions?.tuner || !streamingOptions?.channel) {
+      return null;
+    }
+
+    return <VideoPlayer options={videoJsOptions} onReady={handlePlayerReady} streamingOptions={streamingOptions} />
+  }
+
   return (
     <>
-      <HdhrOptions />
-      { false && <VideoPlayer options={videoJsOptions} onReady={handlePlayerReady} /> }
+      <HdhrOptions onOptionsChanged={onOptionsChanged} />
+      {player()}
     </>
   );
 };

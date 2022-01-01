@@ -1,6 +1,7 @@
 import express from 'express';
 import proxy from 'express-http-proxy';
 import morgan from 'morgan';
+import path from 'path';
 import { getEncoders } from '@drbenschmidt/ffmpeg-utils';
 import { getStatus, getLineup } from '@drbenschmidt/hdhr-utils';
 import { TranscodeManager } from './transcoder/manager';
@@ -10,6 +11,7 @@ const app = express();
 const service = new TranscodeManager();
 const startTime = new Date();
 const hdhrAddress = '192.168.1.169';
+// TODO: Clean temp folder on startup.
 
 const guardValueIn = <T>(input: T, values: T[]): void => {
   if (!values.includes(input)) {
@@ -39,18 +41,42 @@ app.get('/transcode/:addr/:tuner/:channel/webm', (req, res) => {
   }
 });
 
-app.get('hls/:hdhrAddress/:tuner/:channel', async (req, res) => {
+app.get('/hls/:hdhrAddress/:tuner/:channel', async (req, res) => {
   try {
     const { hdhrAddress, tuner, channel } = req.params;
 
     guardValueIn(tuner, ['auto', 'tuner0', 'tuner1', 'tuner2', 'tuner3']);
 
-    service.addStreamer({
+    await service.addStreamer({
       hdhrAddress,
       channel,
       tuner: tuner as TunerName,
       outputType: 'hls'
     }, req, res);
+
+    res.json({
+      src: `http://192.168.1.116/hls/${hdhrAddress}/${tuner}/${channel}/main.m3u8`
+    });
+  } catch (e) {
+    console.error("transcode error", e);
+    res.status(500).json({ error: e }).end();
+  }
+});
+
+app.get('/hls/:hdhrAddress/:tuner/:channel/:file', async (req, res) => {
+  try {
+    const { hdhrAddress, tuner, channel, file } = req.params;
+
+    guardValueIn(tuner, ['auto', 'tuner0', 'tuner1', 'tuner2', 'tuner3']);
+
+    const filePath = path.resolve(`./temp/hls/${hdhrAddress}/${tuner}/${channel}/${file}`);
+
+    console.log(`Sending ${filePath}`);
+
+    // TODO: Make sure these values are sanitized.
+    res.sendFile(filePath, (err) => {
+      console.error(err);
+    });
   } catch (e) {
     console.error("transcode error", e);
     res.status(500).json({ error: e }).end();
@@ -78,8 +104,6 @@ app.get('/guide', async (req, res) => {
     }
   }));
 });
-
-app.use('/hls', express.static('../../tmp'));
 
 app.get('/ffmpeg/encoders', (req, res) => {
   const encoders = getEncoders();

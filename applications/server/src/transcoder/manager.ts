@@ -17,9 +17,11 @@ export class TranscodeManager {
     return process;
   }
 
-  async addStreamer(meta: TranscoderMetadata, request: Request, response: Response) {
+  async addStreamer(meta: TranscoderMetadata, request: Request, response: Response): Promise<void> {
     const transcoder = await this.getTranscoder(meta);
 
     transcoder.addStreamer(request, response);
+
+    return transcoder.ffmpegReady;
   }
 }

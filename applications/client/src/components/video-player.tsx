@@ -1,18 +1,20 @@
 import React, { memo, useEffect, useRef } from "react";
-import videojs from 'video.js'
+import videojs, { VideoJsPlayerOptions } from 'video.js'
+import type { VideoJsPlayer } from 'video.js';
 import 'videojs-hls-quality-selector';
 import 'videojs-contrib-quality-levels';
-import 'videojs-mpegtsjs'
 import "video.js/dist/video-js.css";
-//@ts-ignore
+
 videojs.log.level('all');
 
-import mpegtsjs from 'mpegts.js';
+type BeforeUnloadHandler = (this: Window, ev: BeforeUnloadEvent) => void;
 
-mpegtsjs.LoggingControl.enableDebug = true;
+type VideoJsPlayerWithHls = VideoJsPlayer & {
+  hlsQualitySelector: (options: Record<string, any>) => void;
+}
 
-const useWindowUnloadEffect = (handler, callOnCleanup) => {
-  const cb = useRef()
+const useWindowUnloadEffect = (handler: BeforeUnloadHandler, callOnCleanup: boolean) => {
+  const cb = useRef<BeforeUnloadHandler>()
   
   cb.current = handler;
   
@@ -31,10 +33,21 @@ const useWindowUnloadEffect = (handler, callOnCleanup) => {
   }, [callOnCleanup])
 };
 
-export const VideoJS = (props) => {
-  const videoRef = useRef(null);
-  const playerRef = useRef(null);
-  const { options, onReady } = props;
+export interface VideoPlayerProps {
+  options: any;
+  onReady: (player: VideoJsPlayerWithHls) => void;
+  streamingOptions: StreamingOptions;
+}
+
+export type StreamingOptions = {
+  tuner?: string;
+  channel?: string;
+}
+
+export const VideoPlayer = (props: VideoPlayerProps) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<VideoJsPlayerWithHls>();
+  const { options, onReady, streamingOptions } = props;
 
   useEffect(() => {
     // make sure Video.js player is only initialized once
@@ -42,40 +55,33 @@ export const VideoJS = (props) => {
       const videoElement = videoRef.current;
       if (!videoElement) return;
 
-      const videoOptions = {
+      const videoOptions: VideoJsPlayerOptions = {
         ...options,
-        mpegtsjs: {
-          mediaDataSource: {
-            isLive: true,
-            cors: true,
-            withCredentials: false,
-            hasAudio: true,
-            hasVideo: true,
-          },
-          config: {
-            enableWorker: true,
-          }
-        },
       };
 
       const player = playerRef.current = videojs(videoElement, videoOptions, () => {
         console.log("player is ready");
-        onReady && onReady(player);
-      });
+        onReady?.(player);
+      }) as VideoJsPlayerWithHls;
 
-      playerRef.current.hlsQualitySelector({
+      playerRef.current?.hlsQualitySelector({
         displayCurrentQuality: true,
       });
-
     } else {
       // you can update player here [update player through props]
       // const player = playerRef.current;
       // player.autoplay(options.autoplay);
       // player.src(options.sources);
 
-      
+      if (streamingOptions.channel && streamingOptions.tuner) {
+        fetch(`http://192.168.1.116/hls/192.168.1.169/${streamingOptions.tuner}/${streamingOptions.channel}`)
+          .then(async (val) => {
+            const resp = await val.json();
+            playerRef.current?.src(resp.src);
+          });
+      }
     }
-  }, [options, videoRef]);
+  }, [onReady, options, streamingOptions.channel, streamingOptions.tuner, videoRef]);
 
   // Dispose the Video.js player when the functional component unmounts
   useEffect(() => {
@@ -84,7 +90,7 @@ export const VideoJS = (props) => {
     return () => {
       if (player) {
         player.dispose();
-        playerRef.current = null;
+        playerRef.current = undefined;
       }
     };
   }, [playerRef]);
@@ -93,7 +99,7 @@ export const VideoJS = (props) => {
     const player = playerRef.current;
     if (player) {
       player.dispose();
-      playerRef.current = null;
+      playerRef.current = undefined;
     }
   }, true)
 
@@ -104,4 +110,4 @@ export const VideoJS = (props) => {
   );
 }
 
-export default memo(VideoJS);
+export default memo(VideoPlayer);

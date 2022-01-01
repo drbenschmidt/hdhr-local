@@ -28,9 +28,17 @@ type GuideResponse = Array<{
   number: string;
 }>;
 
-const HdHrOptions = () => {
+export interface HdHrOptions {
+  onOptionsChanged?: (options: { tuner?: string; channel?: string; }) => void;
+}
+
+const HdHrOptions = (options: HdHrOptions) => {
+  const { onOptionsChanged } = options;
   const [guide, setGuide] = useState<GuideResponse>();
+  const [channel, setChannel] = useState<string>();
+  const [tuner, setTuner] = useState<string>();
   const channelRef = useRef<HTMLSelectElement>(null);
+  const tunerRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
     const doFetch = async () => {
@@ -42,28 +50,52 @@ const HdHrOptions = () => {
     doFetch();
   }, []);
 
-  const onChannelSelect = useCallback((...args) => {
-    console.log(args);
-  }, []);
+  const onChannelSelect = useCallback<React.ChangeEventHandler<HTMLSelectElement>>(({ target }) => {
+    setChannel(target.value);
+    onOptionsChanged?.({
+      tuner: tunerRef.current?.value,
+      channel: channelRef.current?.value
+    });
+  }, [onOptionsChanged]);
+
+  const onTunerSelect = useCallback<React.ChangeEventHandler<HTMLSelectElement>>(({ target }) => {
+    setTuner(target.value);
+    onOptionsChanged?.({
+      tuner: tunerRef.current?.value,
+      channel: channelRef.current?.value
+    });
+  }, [onOptionsChanged]);
 
   if (!guide) {
     return null;
   }
 
-  const options = guide.map((v) => {
-    return <option key={v.number} id={v.number} value={v.number}>{v.number} - {v.name}</option>
+  const channelOptions = guide.map((v) => {
+    return <option key={v.number} value={v.number}>{v.number} - {v.name}</option>;
   })
+
+  const tunerOptions = ['auto', 'tuner0', 'tuner1', 'tuner2', 'tuner3'].map((v) => {
+    return <option key={v} value={v}>{v}</option>;
+  });
 
   return (
     <div>
       <div>
-        Tuner: <select></select>
+        Tuner:
+        <select value={tuner} ref={tunerRef} onChange={onTunerSelect}>
+          <option key="select" value="">Select</option>
+          {tunerOptions}
+        </select>
       </div>
       <div>
-        Channel: <select ref={channelRef} onChange={onChannelSelect}>{options}</select>
+        Channel:
+        <select value={channel} ref={channelRef} onChange={onChannelSelect}>
+          <option key="select" value="">Select</option>
+          {channelOptions}
+        </select>
       </div>
     </div>
-  )
+  );
 };
 
 export default memo(HdHrOptions);

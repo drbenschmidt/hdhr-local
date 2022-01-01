@@ -15,7 +15,7 @@ if (PREFER_HARDWARE_ENCODER) {
   }
 }
 
-export const getHlsArgs = (input: string, tuner: string): string[] => {
+export const getHlsArgs = (input: string, outpath: string): string[] => {
   return [
     '-i', input,
     '-filter_complex', '[v:0]split=4[voutorig][vtemp001][vtemp002][vtemp003];[vtemp001]scale=w=1280:h=720[vout001];[vtemp002]scale=w=960:h=540[vout002];[vtemp003]scale=w=640:h=360[vout003]',                 //starting time offset
@@ -55,6 +55,6 @@ export const getHlsArgs = (input: string, tuner: string): string[] => {
     '-hls_flags', 'delete_segments',
     '-master_pl_name', 'main.m3u8',
     '-var_stream_map', 'v:0,a:0 v:1,a:1 v:2,a:2 v:3,a:3',
-    `.tmp/${tuner}/stream_%v.m3u8`
+    `${outpath}/stream_%v.m3u8`
   ];
 };
