@@ -1,7 +1,36 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import VideoPlayer, { StreamingOptions } from './components/video-player';
 import HdhrOptions from "./components/hdhr-options";
+import { ConfigProvider } from './components/config-context';
+import { SocketProvider } from './components/socket-context';
+
+const useRealtimeConnection = () => {
+  useEffect(() => {
+    const ws = new WebSocket('ws://192.168.1.116/socket');
+
+    ws.onopen = (event: Event) => {
+      console.log(event);
+      ws.send('testing');
+    };
+
+    ws.onmessage = (event: MessageEvent<any>) => {
+      console.log(event);
+    };
+
+    ws.onclose = (event: CloseEvent) => {
+      console.log(event);
+    };
+
+    ws.onerror = (event: Event) => {
+      console.log(event);
+    }
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+};
 
 const App = () => {
   const [streamingOptions, setStreamingOptions] = useState<StreamingOptions>();
@@ -45,11 +74,14 @@ const App = () => {
     return <VideoPlayer options={videoJsOptions} onReady={handlePlayerReady} streamingOptions={streamingOptions} />
   }
 
+  // TODO: Split this out.
   return (
-    <>
-      <HdhrOptions onOptionsChanged={onOptionsChanged} />
-      {player()}
-    </>
+    <ConfigProvider>
+      <SocketProvider>
+        <HdhrOptions onOptionsChanged={onOptionsChanged} />
+        {player()}
+      </SocketProvider>
+    </ConfigProvider>
   );
 };
 

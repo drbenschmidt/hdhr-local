@@ -1,13 +1,14 @@
 import express from 'express';
 import proxy from 'express-http-proxy';
 import morgan from 'morgan';
+import expressWs from 'express-ws';
 import path from 'path';
 import { getEncoders } from '@drbenschmidt/ffmpeg-utils';
 import { getStatus, getLineup } from '@drbenschmidt/hdhr-utils';
 import { TranscodeManager } from './transcoder/manager';
 import { TunerName } from './transcoder/metadata';
 
-const app = express();
+const { app } = expressWs(express());
 const service = new TranscodeManager();
 const startTime = new Date();
 const hdhrAddress = '192.168.1.169';
@@ -83,7 +84,7 @@ app.get('/hls/:hdhrAddress/:tuner/:channel/:file', async (req, res) => {
   }
 });
 
-app.get('/health', async (req, res, next) => {
+app.get('/health', async (req, res) => {
   const hdhrStatus = await getStatus(hdhrAddress);
 
   res.json({
@@ -109,6 +110,25 @@ app.get('/ffmpeg/encoders', (req, res) => {
   const encoders = getEncoders();
 
   res.json(encoders);
+});
+
+app.ws('/socket', (ws, req) => {
+  ws.on('message', (msg) => {
+    const data = msg.toString('utf-8');
+    const message = JSON.parse(data);
+
+    if (message.func) {
+      switch (message.func) {
+        case 'time':
+          ws.send(JSON.stringify({
+            callbackId: message.id,
+            response: new Date(),
+          }));
+          break;
+      }
+    }
+  });
+  console.log('socket', req.ip);
 });
 
 // TODO: Make this configurable for dev environments, or just serving

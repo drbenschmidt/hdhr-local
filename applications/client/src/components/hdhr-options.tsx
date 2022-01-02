@@ -1,4 +1,5 @@
-import React, { memo, useCallback, useEffect, useState, useRef } from "react";
+import React, { memo, useCallback, useEffect, useState, useRef, useMemo } from "react";
+import { useSocketConnection } from "./socket-context";
 
 // status.json
 // {
@@ -33,6 +34,7 @@ export interface HdHrOptions {
 }
 
 const HdHrOptions = (options: HdHrOptions) => {
+  const socket = useSocketConnection();
   const { onOptionsChanged } = options;
   const [guide, setGuide] = useState<GuideResponse>();
   const [channel, setChannel] = useState<string>();
@@ -65,6 +67,15 @@ const HdHrOptions = (options: HdHrOptions) => {
       channel: channelRef.current?.value
     });
   }, [onOptionsChanged]);
+
+  useMemo(() => {
+    setTimeout(() => {
+      socket?.getTime().then((resp) => {
+        console.log('getTime', resp);
+      });
+    }, 500);
+  }, [socket]);
+  
 
   if (!guide) {
     return null;
