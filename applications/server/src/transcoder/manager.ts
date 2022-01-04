@@ -25,3 +25,5 @@ export class TranscodeManager {
     return transcoder.ffmpegReady;
   }
 }
+
+export const globalInstance = new TranscodeManager();

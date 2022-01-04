@@ -1,6 +1,6 @@
 import express from 'express';
 import RpcHandler, { RpcRequest, SocketMessage } from '../managers/rpc';
-console.log('2');
+
 const router = express.Router();
 
 const rpcHandler = new RpcHandler();
