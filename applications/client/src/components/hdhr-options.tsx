@@ -76,7 +76,6 @@ const HdHrOptions = (options: HdHrOptions) => {
     }, 500);
   }, [socket]);
   
-
   if (!guide) {
     return null;
   }

@@ -1,10 +1,23 @@
 import React, { createContext, useContext } from 'react';
 import { useConfig, Config } from './config-context';
 
-interface RpcMessage {
-  id?: number;
+interface SocketMessage<T> {
+  type: 'rpc' | 'rpcr';
+  data: T;
+}
+
+interface RpcRequest {
+  id: number;
   func: string;
   args?: string[];
+}
+
+interface RpcResponse {
+  id: number;
+  success: boolean;
+  result?: unknown;
+  error?: string;
+  errorCode?: number;
 }
 
 interface RpcCallback {
@@ -33,7 +46,7 @@ class Deferred<T> {
 class SocketContext {
   private readonly address: string;
   private ws?: WebSocket;
-  private callbackQueue: RpcCallback[] = [];
+  private callbackQueue: Map<number, RpcCallback> = new Map<number, RpcCallback>();
   private callbackId = 0;
 
   constructor(config: Config) {
@@ -55,42 +68,55 @@ class SocketContext {
   }
 
   private onMessage = (event: MessageEvent<any>) => {
-    const obj = JSON.parse(event.data);
+    const obj = JSON.parse(event.data) as SocketMessage<unknown>;
     console.log('[onMessage]', event);
 
-    // TODO: Conform to an RPC interface.
-    if (obj.callbackId) {
-      const entry = this.callbackQueue.find((c) => c.id);
+    switch (obj.type) {
+      case 'rpcr':
+        const response = obj.data as RpcResponse;
+        const entry = this.callbackQueue.get(response.id);
 
-      if (entry) {
-        entry.callback.call(null, obj.response)
-      }
+        if (!entry) {
+          return;
+        }
+
+        try {
+          entry.callback.call(null, response.result);
+        } catch (e) {
+          console.error('[SocketContext] onMessage Error', e);
+        } finally {
+          this.callbackQueue.delete(response.id);
+        }
+      break;
     }
   };
 
-  send<T>(message: T): void {
+  send<T>(message: SocketMessage<T>): void {
     this.ws?.send(JSON.stringify(message));
   }
 
-  async rpc<TResponse>(message: RpcMessage): Promise<TResponse> {
+  async rpc<TResponse>(message: Omit<RpcRequest, 'id'>): Promise<TResponse> {
     const deferred = new Deferred<TResponse>();
     // TODO: Add a timeout race.
     // TODO: Validate the request.
     const id = ++this.callbackId;
-    this.callbackQueue.push({
+    this.callbackQueue.set(id, {
       callback: deferred.resolve,
       id,
     })
-    this.send({
-      ...message,
-      id,
+    this.send<RpcRequest>({
+      type: 'rpc',
+      data: {
+        ...message,
+        id,
+      }
     });
     
     return deferred.promise;
   }
 
   async getTime(): Promise<Date> {
-    const time = await this.rpc<Date>({ func: 'time' });
+    const time = await this.rpc<Date>({ func: 'debug.getTime' });
 
     return time;
   }
